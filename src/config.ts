@@ -1,6 +1,8 @@
 import type { CompanyConfig } from './types';
 
 export const COMPANIES: CompanyConfig[] = [
+  {id: 'Marmita avulsa N8', name: 'Marmita avulsa N8', pricePerUnit: 20.00 },
+  {id: 'Marmita avulsa N9', name: 'Marmita avulsa N9', pricePerUnit: 23.00 },
   { id: 'funcionario', name: 'Funcionário (Vale)', pricePerUnit: 17.00 },
   { id: 'Todimo', name: 'Todimo PF', pricePerUnit: 22.00 },
   { id: 'Videira Marmita', name: 'Videira Marmita', pricePerUnit: 18.00 },
