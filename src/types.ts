@@ -1,34 +1,35 @@
-// Define o formato de uma empresa 
 export interface CompanyConfig {
   id: string;
   name: string;
-  pricePerUnit: number; 
+  pricePerUnit: number;
 }
 
-// Define o input diário de uma empresa
 export interface CompanyEntry {
   companyId: string;
   quantity: number;
 }
 
-// Define o relatório diário completo
+// Novo tipo para agrupar Valor + Quantidade
+export interface FinancialEntry {
+  value: number;
+  quantity: number; // Quantidade de itens/pedidos
+}
+
 export interface DailyReport {
   date: string;
   
-  // Bloco 1: Vouchers/Empresas
   companyEntries: CompanyEntry[];
   
-  // Bloco 2: Totais Financeiros (Digitados do sistema/maquininha)
+  // Agora cada método tem Valor E Quantidade
   totals: {
-    creditCard: number;
-    debitCard: number;
-    pixMachine: number;
-    pixPersonal: number;
-    cash: number;
-    ifood: number;
+    creditCard: FinancialEntry;
+    debitCard: FinancialEntry;
+    pixMachine: FinancialEntry;
+    pixPersonal: FinancialEntry;
+    cash: FinancialEntry;
+    ifood: FinancialEntry;
   };
 
-  // Bloco 3: Saídas
   expenses: {
     id: string;
     description: string;
