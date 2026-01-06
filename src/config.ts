@@ -22,5 +22,5 @@ export const COMPANIES: CompanyConfig[] = [
   { id: 'SG Funilaria', name: 'SG Funilaria', pricePerUnit: 18.00 },
   { id: 'Strobel', name: 'Strobel', pricePerUnit: 18.00 },
   { id: 'CS Ar Condiciondo', name: 'CS Ar Condiciondo Marmita', pricePerUnit: 18.00 },
-  { id: 'CS Ar Condiciondo', name: 'CS Ar Condiciondo PF', pricePerUnit: 25.00 },,
+  { id: 'CS Ar Condiciondo', name: 'CS Ar Condiciondo PF', pricePerUnit: 25.00 },
 ];
