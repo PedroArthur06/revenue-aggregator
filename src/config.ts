@@ -3,8 +3,8 @@ import type { CompanyConfig } from './types';
 export const COMPANIES: CompanyConfig[] = [
   { id: 'funcionario', name: 'Funcionário (Vale)', pricePerUnit: 17.00 },
   { id: 'Todimo', name: 'Todimo PF', pricePerUnit: 22.00 },
-  { id: 'Videira', name: 'Videira Marmita', pricePerUnit: 18.00 },
-  { id: 'Videira', name: 'Videira PF', pricePerUnit: 30.00 },
+  { id: 'Videira Marmita', name: 'Videira Marmita', pricePerUnit: 18.00 },
+  { id: 'Videira PF', name: 'Videira PF', pricePerUnit: 30.00 },
   { id: 'Sul Tintas', name: 'Sul Tintas Marmita', pricePerUnit: 18.00 },
   { id: 'Sul Tintas', name: 'Sul Tintas PF', pricePerUnit: 22.00 },
   { id: 'Dismafe', name: 'Dismafe', pricePerUnit: 18.00 },
