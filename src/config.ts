@@ -10,7 +10,7 @@ export const COMPANIES: CompanyConfig[] = [
   { id: 'Dismafe', name: 'Dismafe', pricePerUnit: 18.00 },
   { id: 'Cláudio', name: 'Cláudio', pricePerUnit: 18.00 },
   { id: 'Melhor Aroma', name: 'Melhor Aroma Marmita', pricePerUnit: 18.00 },
-  { id: 'Melhor Aroma', name: 'Melhor Aroma Marmita', pricePerUnit: 22.00 },
+  { id: 'Melhor Aroma', name: 'Melhor Aroma PF', pricePerUnit: 22.00 },
   { id: 'Puríssima', name: 'Puríssima', pricePerUnit: 22.00 },
   { id: 'Mercadão', name: 'Mercadão', pricePerUnit: 18.00 },
   { id: 'Prime', name: 'Prime', pricePerUnit: 18.00 },
