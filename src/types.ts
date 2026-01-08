@@ -9,18 +9,31 @@ export interface CompanyEntry {
   quantity: number;
 }
 
-// Novo tipo para agrupar Valor + Quantidade
+// Novo tipo para itens avulsos
+export interface MiscEntry {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 export interface FinancialEntry {
   value: number;
-  quantity: number; // Quantidade de itens/pedidos
+  quantity: number;
 }
 
 export interface DailyReport {
   date: string;
   
+  // O dinheiro que já estava na gaveta
+  openingBalance: number;
+
   companyEntries: CompanyEntry[];
   
-  // Agora cada método tem Valor E Quantidade
+  // Lista de itens soltos (Cocas, doces, etc)
+  miscEntries: MiscEntry[];
+
   totals: {
     creditCard: FinancialEntry;
     debitCard: FinancialEntry;

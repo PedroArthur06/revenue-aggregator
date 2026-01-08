@@ -1,84 +1,79 @@
 import { useState, useEffect } from 'react';
-import type { DailyReport } from './types';
+import type { DailyReport, MiscEntry } from './types';
 import { COMPANIES } from './config';
-import { Plus, Trash2, Download, Wallet, TrendingDown, Receipt, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Download, Wallet, TrendingDown, Receipt, RotateCcw, ShoppingBag } from 'lucide-react';
 
-  // Componente Auxiliar para o Input Duplo (Valor + Quantidade)
-  const FinancialInputRow = ({ 
-    label, 
-    fieldKey, 
-    colorClass, 
-    report, 
-    setReport 
-  }: { 
-    label: string, 
-    fieldKey: keyof DailyReport['totals'], 
-    colorClass: string,
-    report: DailyReport,
-    setReport: (r: DailyReport) => void
-  }) => (
-    <div>
-      <label className="text-xs text-slate-500 font-medium mb-1 block">{label}</label>
-      <div className="flex gap-2">
-        {/* Input de VALOR */}
-        <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
-            <input 
-            type="number" 
-            className={`w-full border p-2 pl-8 rounded focus:ring-2 ${colorClass} outline-none font-mono text-right`} 
-            value={report.totals[fieldKey].value || ''}
-            onChange={e => setReport({
-                ...report, 
-                totals: {
-                ...report.totals, 
-                [fieldKey]: { ...report.totals[fieldKey], value: Number(e.target.value) }
-                }
-            })}
-            placeholder="0.00"
-            />
-        </div>
-        {/* Input de QUANTIDADE */}
-        <div className="relative w-20">
-            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold pointer-events-none">un</span>
-            <input 
-            type="number" 
-            className={`w-full border p-2 pr-6 rounded focus:ring-2 ${colorClass} outline-none font-mono text-center text-xs`} 
-            value={report.totals[fieldKey].quantity || ''}
-            onChange={e => setReport({
-                ...report, 
-                totals: {
-                ...report.totals, 
-                [fieldKey]: { ...report.totals[fieldKey], quantity: Number(e.target.value) }
-                }
-            })}
-            placeholder="Qtd"
-            />
-        </div>
+// Componente Auxiliar para o Input Duplo (Valor + Quantidade)
+const FinancialInputRow = ({ 
+  label, 
+  fieldKey, 
+  colorClass, 
+  report, 
+  setReport 
+}: { 
+  label: string, 
+  fieldKey: keyof DailyReport['totals'], 
+  colorClass: string,
+  report: DailyReport,
+  setReport: (r: DailyReport) => void
+}) => (
+  <div>
+    <label className="text-xs text-slate-500 font-medium mb-1 block">{label}</label>
+    <div className="flex gap-2">
+      {/* Input de VALOR */}
+      <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+          <input 
+          type="number" 
+          className={`w-full border p-2 pl-8 rounded focus:ring-2 ${colorClass} outline-none font-mono text-right`} 
+          value={report.totals[fieldKey].value || ''}
+          onChange={e => setReport({
+              ...report, 
+              totals: {
+              ...report.totals, 
+              [fieldKey]: { ...report.totals[fieldKey], value: Number(e.target.value) }
+              }
+          })}
+          placeholder="0.00"
+          />
+      </div>
+      {/* Input de QUANTIDADE */}
+      <div className="relative w-20">
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold pointer-events-none">un</span>
+          <input 
+          type="number" 
+          className={`w-full border p-2 pr-6 rounded focus:ring-2 ${colorClass} outline-none font-mono text-center text-xs`} 
+          value={report.totals[fieldKey].quantity || ''}
+          onChange={e => setReport({
+              ...report, 
+              totals: {
+              ...report.totals, 
+              [fieldKey]: { ...report.totals[fieldKey], quantity: Number(e.target.value) }
+              }
+          })}
+          placeholder="Qtd"
+          />
       </div>
     </div>
-  );
+  </div>
+);
 
 function App() {
-  // Estado inicial inteligente (Migração de dados antigos se necessário)
   const [report, setReport] = useState<DailyReport>(() => {
     const saved = localStorage.getItem('fechamento-caixa-v1');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Pequena proteção: Se o salvo for do formato antigo (sem .value), reseta ou adapta
-      // Para simplificar no dev, se der erro de estrutura, assumimos zerado.
-      if (typeof parsed.totals.creditCard === 'number') {
-        return getEmptyState();
-      }
-      return parsed;
+      return { ...getEmptyState(), ...parsed };
     }
     return getEmptyState();
   });
 
-  // Função para gerar o estado zerado (ajuda na organização)
   function getEmptyState(): DailyReport {
     return {
       date: new Date().toISOString().split('T')[0], 
+      openingBalance: 0,
       companyEntries: [],
+      miscEntries: [],
       totals: {
         creditCard: { value: 0, quantity: 0 },
         debitCard: { value: 0, quantity: 0 },
@@ -91,7 +86,6 @@ function App() {
     };
   }
 
-  // Persistência
   useEffect(() => {
     localStorage.setItem('fechamento-caixa-v1', JSON.stringify(report));
   }, [report]);
@@ -105,9 +99,13 @@ function App() {
     }, 0);
   };
   
-  // Calcula Quantidade TOTAL de marmitas/itens (Vouchers + Financeiro)
+  const calculateTotalMisc = () => {
+    return report.miscEntries.reduce((acc, entry) => acc + entry.total, 0);
+  };
+
   const calculateTotalItems = () => {
     const vouchersCount = report.companyEntries.reduce((acc, e) => acc + e.quantity, 0);
+    const miscCount = report.miscEntries.reduce((acc, e) => acc + e.quantity, 0);
     const financeCount = 
       report.totals.creditCard.quantity + 
       report.totals.debitCard.quantity + 
@@ -115,12 +113,11 @@ function App() {
       report.totals.pixPersonal.quantity + 
       report.totals.cash.quantity + 
       report.totals.ifood.quantity;
-    return vouchersCount + financeCount;
+    return vouchersCount + financeCount + miscCount;
   };
 
   const calculateTotalFinance = () => {
     const t = report.totals;
-    // Agora acessamos .value
     return t.creditCard.value + t.debitCard.value + t.pixMachine.value + t.pixPersonal.value + t.cash.value + t.ifood.value;
   };
 
@@ -128,23 +125,40 @@ function App() {
     return report.expenses.reduce((acc, item) => acc + item.value, 0);
   };
 
-  const calculateNetTotal = () => {
-    return (calculateTotalCompanies() + calculateTotalFinance()) - calculateTotalExpenses();
+  // CÁLCULO TOTAL GERAL PEDIDO (Tudo somado - despesas)
+  const calculateGrandTotal = () => {
+    const entradas = 
+        report.openingBalance + 
+        calculateTotalCompanies() + 
+        calculateTotalFinance() + 
+        calculateTotalMisc();
+    
+    return entradas - calculateTotalExpenses();
+  };
+
+  // Cálculo Apenas do Dinheiro (Para conferência de gaveta, se precisar)
+  const calculateCashBalance = () => {
+      return report.openingBalance + calculateTotalFinance() - calculateTotalExpenses();
   };
 
   const handleCopyReport = () => {
     const totalVouchersVal = calculateTotalCompanies();
+    const totalMiscVal = calculateTotalMisc();
     const totalFinanceVal = calculateTotalFinance();
     const totalExpensesVal = calculateTotalExpenses();
-    const net = calculateNetTotal();
-    const totalItems = calculateTotalItems();
-
+    const grandTotal = calculateGrandTotal();
+    const cashBalance = calculateCashBalance();
+    
     const vouchersDetail = report.companyEntries
       .filter(e => e.quantity > 0)
       .map(e => {
         const company = COMPANIES.find(c => c.id === e.companyId);
         return `- ${company?.name}: ${e.quantity} un`;
       }).join('\n');
+
+    const miscDetail = report.miscEntries
+      .map(e => `- ${e.description} (${e.quantity}x): R$ ${e.total.toFixed(2)}`)
+      .join('\n');
 
     const expensesDetail = report.expenses
       .map(e => `- ${e.description}: R$ ${e.value.toFixed(2)}`)
@@ -153,28 +167,37 @@ function App() {
     const text = `
 📅 *FECHAMENTO - ${report.date.split('-').reverse().join('/')}*
 ---------------------------
-📦 *Total Itens/Marmitas:* ${totalItems} und
-💰 *Venda Total:* R$ ${(totalVouchersVal + totalFinanceVal).toFixed(2)}
-📉 *Despesas:* R$ ${totalExpensesVal.toFixed(2)}
-✅ *LÍQUIDO:* R$ ${net.toFixed(2)}
+📦 *Total Itens:* ${calculateTotalItems()} und
+
+💵 *Fundo Inicial:* R$ ${report.openingBalance.toFixed(2)}
+🏢 *Convênios:* R$ ${totalVouchersVal.toFixed(2)}
+💳 *Balcão:* R$ ${totalFinanceVal.toFixed(2)}
+🛒 *Avulsos:* R$ ${totalMiscVal.toFixed(2)}
+📉 *Despesas:* - R$ ${totalExpensesVal.toFixed(2)}
+
+Eq *TOTAL GERAL:* R$ ${grandTotal.toFixed(2)}
+(Dinheiro Previsto na Gaveta: R$ ${cashBalance.toFixed(2)})
 ---------------------------
-🏢 *Convênios (R$ ${totalVouchersVal.toFixed(2)}):*
+🏢 *Detalhamento Convênios:*
 ${vouchersDetail || '- Nenhum'}
 
-💳 *Financeiro (R$ ${totalFinanceVal.toFixed(2)}):*
-- Crédito: R$ ${report.totals.creditCard.value.toFixed(2)} (${report.totals.creditCard.quantity} und)
-- Débito: R$ ${report.totals.debitCard.value.toFixed(2)} (${report.totals.debitCard.quantity} und)
-- Pix Maq: R$ ${report.totals.pixMachine.value.toFixed(2)} (${report.totals.pixMachine.quantity} und)
-- Pix Dona: R$ ${report.totals.pixPersonal.value.toFixed(2)} (${report.totals.pixPersonal.quantity} und)
-- Dinheiro: R$ ${report.totals.cash.value.toFixed(2)} (${report.totals.cash.quantity} und)
-- iFood: R$ ${report.totals.ifood.value.toFixed(2)} (${report.totals.ifood.quantity} und)
+🛒 *Detalhamento Avulsos:*
+${miscDetail || '- Nenhum'}
+
+💳 *Detalhamento Financeiro:*
+- Crédito: R$ ${report.totals.creditCard.value.toFixed(2)}
+- Débito: R$ ${report.totals.debitCard.value.toFixed(2)}
+- Pix Maq: R$ ${report.totals.pixMachine.value.toFixed(2)}
+- Pix Dona: R$ ${report.totals.pixPersonal.value.toFixed(2)}
+- Dinheiro: R$ ${report.totals.cash.value.toFixed(2)}
+- iFood: R$ ${report.totals.ifood.value.toFixed(2)}
 
 🔻 *Saídas:*
 ${expensesDetail || '- Nenhuma'}
     `.trim();
 
     navigator.clipboard.writeText(text);
-    alert("Relatório copiado! Pode colar no WhatsApp.");
+    alert("Relatório copiado!");
   };
 
   const addVoucherRow = () => {
@@ -184,13 +207,38 @@ ${expensesDetail || '- Nenhuma'}
     });
   };
 
-  const removeVoucherRow = (index: number) => {
-    const newEntries = report.companyEntries.filter((_, i) => i !== index);
-    setReport({ ...report, companyEntries: newEntries });
+  const addMiscRow = () => {
+    setReport({
+      ...report,
+      miscEntries: [...report.miscEntries, { 
+        id: crypto.randomUUID(), 
+        description: '', 
+        quantity: 1, 
+        unitPrice: 0, 
+        total: 0 
+      }]
+    });
+  };
+
+  const updateMiscRow = (index: number, field: keyof MiscEntry, value: string | number) => {
+    const newEntries = [...report.miscEntries];
+    const entry = newEntries[index];
+    
+    if (field === 'quantity' || field === 'unitPrice') {
+      const qty = field === 'quantity' ? Number(value) : entry.quantity;
+      const price = field === 'unitPrice' ? Number(value) : entry.unitPrice;
+      entry.quantity = qty;
+      entry.unitPrice = price;
+      entry.total = qty * price;
+    } else if (field === 'description') {
+      entry.description = String(value);
+    }
+
+    setReport({ ...report, miscEntries: newEntries });
   };
 
   const handleStartNewDay = () => {
-    if (window.confirm("Tem certeza? Isso vai APAGAR todos os dados de hoje para iniciar um novo dia.")) {
+    if (window.confirm("Isso vai ZERAR todos os dados. Tem certeza?")) {
       setReport(getEmptyState()); 
       localStorage.removeItem('fechamento-caixa-v1'); 
       window.scrollTo({ top: 0, behavior: 'smooth' }); 
@@ -201,14 +249,32 @@ ${expensesDetail || '- Nenhuma'}
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-10">
       <div className="max-w-3xl mx-auto space-y-6">
         
-        <header className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-800">Fechamento Diário</h1>
-          <input 
-            type="date" 
-            className="border p-2 rounded bg-white font-medium text-slate-600"
-            value={report.date}
-            onChange={(e) => setReport({...report, date: e.target.value})}
-          />
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Fechamento Diário</h1>
+            <p className="text-xs text-slate-400 font-medium">Controle Brutal de Caixa</p>
+          </div>
+          <div className="flex gap-2">
+            <div className="bg-white border p-2 rounded flex flex-col items-start w-32">
+                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Fundo de Caixa</label>
+                <div className="flex items-center gap-1 w-full">
+                    <span className="text-slate-400 text-xs">R$</span>
+                    <input 
+                        type="number" 
+                        className="w-full outline-none font-bold text-slate-700 bg-transparent"
+                        placeholder="0.00"
+                        value={report.openingBalance || ''}
+                        onChange={(e) => setReport({...report, openingBalance: Number(e.target.value)})}
+                    />
+                </div>
+            </div>
+            <input 
+                type="date" 
+                className="border p-2 rounded bg-white font-medium text-slate-600 h-[58px]"
+                value={report.date}
+                onChange={(e) => setReport({...report, date: e.target.value})}
+            />
+          </div>
         </header>
 
         {/* BLOCO 1: VOUCHERS */}
@@ -217,14 +283,8 @@ ${expensesDetail || '- Nenhuma'}
             <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-700">
               🏢 Vouchers & Convênios
             </h2>
-            <button 
-              onClick={addVoucherRow}
-              className="text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg hover:bg-blue-100 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={16} /> Adicionar
-            </button>
           </div>
-
+          
           <div className="space-y-3">
             {report.companyEntries.map((entry, index) => {
               const selectedCompany = COMPANIES.find(c => c.id === entry.companyId);
@@ -268,7 +328,10 @@ ${expensesDetail || '- Nenhuma'}
                     </div>
                   </div>
                   <button 
-                    onClick={() => removeVoucherRow(index)}
+                    onClick={() => {
+                        const newEntries = report.companyEntries.filter((_, i) => i !== index);
+                        setReport({ ...report, companyEntries: newEntries });
+                    }}
                     className="h-[42px] w-[42px] flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                   >
                     <Trash2 size={18} />
@@ -276,39 +339,114 @@ ${expensesDetail || '- Nenhuma'}
                 </div>
               );
             })}
-            {report.companyEntries.length === 0 && (
-              <div className="text-center py-8 bg-slate-50 rounded border border-dashed border-slate-300 text-slate-400 text-sm">
-                Nenhum convênio adicionado hoje.<br/>
-                <span className="text-xs opacity-70">Clique em "Adicionar" se houver vouchers.</span>
-              </div>
-            )}
+            
+            {/* BOTÃO ADICIONAR (MOVIDO PARA O FINAL) */}
+            <button 
+              onClick={addVoucherRow}
+              className="w-full py-3 mt-2 rounded-lg border-2 border-dashed border-blue-200 text-blue-500 hover:bg-blue-50 hover:border-blue-300 transition-all font-medium flex items-center justify-center gap-2"
+            >
+              <Plus size={18} /> Adicionar Convênio
+            </button>
           </div>
-          {report.companyEntries.length > 0 && (
-            <div className="mt-4 pt-4 border-t flex justify-between items-center">
-              <span className="text-slate-600 font-medium">Total em Vouchers:</span>
-              <span className="text-xl font-bold text-blue-600">
-                R$ {calculateTotalCompanies().toFixed(2)}
-              </span>
-            </div>
-          )}
+
+          <div className="mt-4 pt-4 border-t flex justify-between items-center">
+            <span className="text-slate-600 font-medium">Total em Vouchers:</span>
+            <span className="text-xl font-bold text-blue-600">
+              R$ {calculateTotalCompanies().toFixed(2)}
+            </span>
+          </div>
         </section>
 
-        {/* BLOCO 2: FINANCEIRO (ATUALIZADO COM QTD) */}
+        {/* BLOCO NOVO: ITENS AVULSOS */}
+        <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-orange-400">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-700">
+              <ShoppingBag size={20} className="text-orange-500"/> Vendas Avulsas
+            </h2>
+          </div>
+          
+          <div className="space-y-3">
+             {report.miscEntries.map((entry, index) => (
+               <div key={entry.id} className="flex flex-wrap md:flex-nowrap gap-2 items-end animate-fadeIn bg-slate-50 p-2 rounded-lg md:bg-transparent md:p-0">
+                 {/* ... (Mesmo código de Inputs Avulsos) ... */}
+                 <div className="w-full md:flex-1">
+                   <label className="text-xs text-slate-500 font-bold ml-1 md:hidden">Descrição</label>
+                   <input 
+                     type="text" 
+                     placeholder="Ex: 3 Cocas..."
+                     className="w-full border p-2 rounded focus:ring-2 focus:ring-orange-300 outline-none h-[42px]"
+                     value={entry.description}
+                     onChange={e => updateMiscRow(index, 'description', e.target.value)}
+                   />
+                 </div>
+                 <div className="w-1/3 md:w-20">
+                   <label className="text-xs text-slate-500 font-bold ml-1 md:hidden">Qtd</label>
+                   <input 
+                     type="number"
+                     placeholder="Qtd" 
+                     className="w-full border p-2 rounded focus:ring-2 focus:ring-orange-300 outline-none text-center h-[42px]"
+                     value={entry.quantity || ''}
+                     onChange={e => updateMiscRow(index, 'quantity', e.target.value)}
+                   />
+                 </div>
+                 <div className="w-1/3 md:w-24 relative">
+                   <label className="text-xs text-slate-500 font-bold ml-1 md:hidden">V. Unit</label>
+                   <span className="absolute left-2 top-[5px] md:top-[10px] text-slate-400 text-xs">R$</span>
+                   <input 
+                     type="number"
+                     placeholder="Unit." 
+                     className="w-full border p-2 pl-6 rounded focus:ring-2 focus:ring-orange-300 outline-none text-right h-[42px]"
+                     value={entry.unitPrice || ''}
+                     onChange={e => updateMiscRow(index, 'unitPrice', e.target.value)}
+                   />
+                 </div>
+                 <div className="w-1/3 md:w-24 text-right pb-2">
+                   <div className="text-xs text-slate-400 hidden md:block">Total</div>
+                   <div className="font-bold text-slate-700 h-[42px] flex items-center justify-end">
+                     R$ {entry.total.toFixed(2)}
+                   </div>
+                 </div>
+                 <button 
+                    onClick={() => {
+                        const newEntries = report.miscEntries.filter((_, i) => i !== index);
+                        setReport({ ...report, miscEntries: newEntries });
+                    }}
+                    className="h-[42px] w-[42px] flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+               </div>
+             ))}
+             
+             {/* BOTÃO ADICIONAR (AVULSOS) */}
+             <button 
+              onClick={addMiscRow}
+              className="w-full py-3 mt-2 rounded-lg border-2 border-dashed border-orange-200 text-orange-500 hover:bg-orange-50 hover:border-orange-300 transition-all font-medium flex items-center justify-center gap-2"
+            >
+              <Plus size={18} /> Adicionar Avulso
+            </button>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t flex justify-between items-center">
+             <span className="text-slate-600 font-medium">Total Avulsos:</span>
+             <span className="text-lg font-bold text-orange-600">
+                 R$ {calculateTotalMisc().toFixed(2)}
+             </span>
+          </div>
+        </section>
+
+        {/* BLOCO 2: FINANCEIRO */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-700">
-            <Wallet size={20} /> Entradas Financeiras
+            <Wallet size={20} /> Entradas Financeiras (Balcão)
           </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Coluna 1: Maquininha */}
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
               <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2 border-b pb-2">Sistema / Maquininha</h3>
               <FinancialInputRow label="Crédito" fieldKey="creditCard" colorClass="focus:ring-blue-500" report={report} setReport={setReport} />
               <FinancialInputRow label="Débito" fieldKey="debitCard" colorClass="focus:ring-blue-500" report={report} setReport={setReport} />
               <FinancialInputRow label="Pix (Maquininha)" fieldKey="pixMachine" colorClass="focus:ring-blue-500" report={report} setReport={setReport} />
             </div>
-
-            {/* Coluna 2: Externo */}
             <div className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
               <h3 className="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2 border-b pb-2">Externo / Outros</h3>
               <FinancialInputRow label="Pix (Conta Dona)" fieldKey="pixPersonal" colorClass="focus:ring-purple-500" report={report} setReport={setReport} />
@@ -316,25 +454,23 @@ ${expensesDetail || '- Nenhuma'}
               <FinancialInputRow label="iFood (Portal)" fieldKey="ifood" colorClass="focus:ring-red-500" report={report} setReport={setReport} />
             </div>
           </div>
+
+          {/* NOVO: TOTAL DO FINANCEIRO */}
+          <div className="mt-6 pt-4 border-t flex justify-between items-center">
+            <span className="text-slate-600 font-medium">Total Balcão (Financeiro):</span>
+            <span className="text-xl font-bold text-green-600">
+              R$ {calculateTotalFinance().toFixed(2)}
+            </span>
+          </div>
         </section>
 
         {/* BLOCO 3: SAÍDAS */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex justify-between items-center mb-4">
+           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-red-600 flex items-center gap-2">
               <TrendingDown size={20} /> Saídas & Despesas
             </h2>
-            <button 
-              onClick={() => setReport({
-                ...report, 
-                expenses: [...report.expenses, { id: crypto.randomUUID(), description: '', value: 0 }]
-              })}
-              className="text-sm bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 flex items-center gap-2 font-medium transition-colors"
-            >
-              <Plus size={16} /> Adicionar
-            </button>
           </div>
-
           <div className="space-y-3">
             {report.expenses.map((expense, index) => (
               <div key={expense.id} className="flex gap-2 items-center animate-fadeIn">
@@ -360,7 +496,7 @@ ${expensesDetail || '- Nenhuma'}
                     setReport({...report, expenses: newExpenses});
                   }}
                 />
-                <button 
+                 <button 
                   onClick={() => {
                     const newExpenses = report.expenses.filter((_, i) => i !== index);
                     setReport({...report, expenses: newExpenses});
@@ -372,60 +508,109 @@ ${expensesDetail || '- Nenhuma'}
               </div>
             ))}
             
-            {report.expenses.length === 0 && (
-              <div className="text-center py-8 bg-slate-50 rounded border border-dashed border-slate-300 text-slate-400 text-sm">
-                Nenhuma saída registrada hoje.<br/>
-                <span className="text-xs opacity-70">Clique em "Adicionar" se houver gastos.</span>
-              </div>
-            )}
+            {/* BOTÃO ADICIONAR (SAÍDAS) */}
+            <button 
+              onClick={() => setReport({
+                ...report, 
+                expenses: [...report.expenses, { id: crypto.randomUUID(), description: '', value: 0 }]
+              })}
+              className="w-full py-3 mt-2 rounded-lgWZ border-2 border-dashed border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-all font-medium flex items-center justify-center gap-2"
+            >
+              <Plus size={18} /> Adicionar Despesa
+            </button>
+          </div>
+
+           {/* NOVO: TOTAL DE SAÍDAS */}
+           <div className="mt-4 pt-4 border-t flex justify-between items-center">
+            <span className="text-slate-600 font-medium">Total Despesas:</span>
+            <span className="text-xl font-bold text-red-600">
+              - R$ {calculateTotalExpenses().toFixed(2)}
+            </span>
           </div>
         </section>
 
-        {/* BLOCO 4: RESUMO GERAL ESTÁTICO */}
+        {/* BLOCO 4: RESUMO GERAL REFEITO */}
         <section className="bg-slate-900 text-white p-6 rounded-xl shadow-lg mt-8">
-            <h2 className="text-lg font-semibold flex items-center gap-2 mb-6 text-slate-300">
-                <Receipt size={20} /> Resumo do Fechamento
+            <h2 className="text-lg font-semibold flex items-center gap-2 mb-6 text-slate-300 border-b border-slate-700 pb-4">
+                <Receipt size={20} className="text-yellow-400"/> Relatório Final
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-                <div>
-                    <span className="block text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Bruto Total</span>
-                    <span className="text-2xl font-bold text-white">
-                        R$ {(calculateTotalCompanies() + calculateTotalFinance()).toFixed(2)}
+            {/* GRID DE RESUMO DETALHADO */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                
+                {/* 1. FUNDO DE CAIXA */}
+                <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                    <span className="block text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">
+                        1. Fundo Inicial
                     </span>
-                    <span className="text-xs text-slate-400 block mt-1">
-                      {calculateTotalItems()} itens vendidos
+                    <span className="text-lg font-medium text-white">
+                        R$ {report.openingBalance.toFixed(2)}
                     </span>
                 </div>
-                <div>
-                    <span className="block text-red-300 text-xs uppercase font-bold tracking-wider mb-1">Saídas</span>
-                    <span className="text-2xl font-bold text-red-400">
+
+                {/* 2. LUCRO CONVÊNIOS */}
+                <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                    <span className="block text-[10px] text-blue-400 uppercase font-bold tracking-wider mb-1">
+                        2. Convênios
+                    </span>
+                    <span className="text-lg font-medium text-white">
+                        + R$ {calculateTotalCompanies().toFixed(2)}
+                    </span>
+                </div>
+
+                {/* 3. LUCRO BALCÃO */}
+                <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                    <span className="block text-[10px] text-green-400 uppercase font-bold tracking-wider mb-1">
+                        3. Balcão (Finan.)
+                    </span>
+                    <span className="text-lg font-medium text-white">
+                        + R$ {calculateTotalFinance().toFixed(2)}
+                    </span>
+                </div>
+
+                {/* 4. LUCRO AVULSOS */}
+                <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                    <span className="block text-[10px] text-orange-400 uppercase font-bold tracking-wider mb-1">
+                        4. Avulsos
+                    </span>
+                    <span className="text-lg font-medium text-white">
+                        + R$ {calculateTotalMisc().toFixed(2)}
+                    </span>
+                </div>
+
+                {/* 5. DESPESAS */}
+                <div className="bg-slate-800 p-3 rounded border border-slate-700">
+                    <span className="block text-[10px] text-red-400 uppercase font-bold tracking-wider mb-1">
+                        5. Despesas
+                    </span>
+                    <span className="text-lg font-medium text-red-400">
                         - R$ {calculateTotalExpenses().toFixed(2)}
                     </span>
                 </div>
-                <div className="col-span-2 md:col-span-1 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-slate-700">
-                    <span className="block text-green-400 text-xs uppercase font-bold tracking-wider mb-1">Líquido Final</span>
-                    <span className="text-3xl font-black text-green-400">
-                        R$ {calculateNetTotal().toFixed(2)}
+
+                 {/* 6. TOTAL GERAL (Soma Tudo - Despesas) */}
+                 <div className="bg-indigo-900 p-3 rounded border border-indigo-700 shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-indigo-500 w-8 h-8 rounded-bl-full opacity-20"></div>
+                    <span className="block text-[10px] text-indigo-300 uppercase font-bold tracking-wider mb-1">
+                        6. Total Geral (Somado)
+                    </span>
+                    <span className="text-2xl font-black text-white">
+                        R$ {calculateGrandTotal().toFixed(2)}
                     </span>
                 </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-              {/* Botão Principal: Copiar */}
               <button 
                   onClick={handleCopyReport}
-                  // Mudei de 'flex-1' para 'w-full md:w-64' (Tamanho fixo no PC, total no celular)
                   className="w-full md:w-64 bg-white text-slate-900 py-3 rounded-lg font-bold hover:bg-slate-100 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                   <Download size={20} />
                   Copiar Relatório
               </button>
 
-              {/* Botão Secundário: Novo Dia */}
               <button 
                   onClick={handleStartNewDay}
-                  // Mudei para 'w-full md:w-auto' para ficar harmonico
                   className="w-full md:w-auto bg-slate-800 text-slate-400 py-3 px-6 rounded-lg font-medium hover:bg-red-900/30 hover:text-red-400 border border-transparent active:scale-95 transition-all flex items-center justify-center gap-2"
                   title="Limpar tudo e iniciar novo dia"
               >
