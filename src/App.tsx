@@ -127,12 +127,7 @@ function App() {
 
   // CÁLCULO TOTAL GERAL PEDIDO (Tudo somado - despesas)
   const calculateGrandTotal = () => {
-    const entradas = 
-        report.openingBalance + 
-        calculateTotalCompanies() + 
-        calculateTotalFinance() + 
-        calculateTotalMisc();
-    
+    const entradas = calculateTotalCompanies() + calculateTotalFinance() + calculateTotalMisc();
     return entradas - calculateTotalExpenses();
   };
 
