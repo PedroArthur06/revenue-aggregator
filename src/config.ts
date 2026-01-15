@@ -1,7 +1,8 @@
 import type { CompanyConfig } from './types';
 
 export const COMPANIES: CompanyConfig[] = [
-  { id: 'Água', name: 'Água', pricePerUnit: 18.00 },
+  { id: 'Dennis Águas', name: 'Dennis Águas', pricePerUnit: 18.00 },
+  { id: 'Kil Águas', name: 'Kil Águas', pricePerUnit: 18.00 },
   { id: 'Alicerce', name: 'Alicerce', pricePerUnit: 18.00 },
   { id: 'Ana Cláudia Copa Executivo', name: 'Copa Executivo', pricePerUnit: 18.00 },
   { id: 'Boldrin (Particular Prime)', name: 'Boldrin (Praticular Prime)', pricePerUnit: 18.00 },
@@ -13,11 +14,20 @@ export const COMPANIES: CompanyConfig[] = [
   { id: 'Melhor Aroma Marmita', name: 'Melhor Aroma Marmita', pricePerUnit: 18.00 },
   { id: 'Melhor Aroma PF', name: 'Melhor Aroma PF', pricePerUnit: 25.00 },
   { id: 'Mercadão', name: 'Mercadão', pricePerUnit: 18.00 },
+  { id: 'Maria Neuza', name: 'Maria Neuza', pricePerUnit: 20.00 },
   { id: 'Notalize', name: 'Notalize', pricePerUnit: 18.00 },
   { id: 'Patricia (Particular)', name: 'Patrícia (Particular)', pricePerUnit: 20.00 },
-  { id: 'Prime', name: 'Prime', pricePerUnit: 18.00 },
+  { id: 'Amanda Prime', name: 'Amanda Prime', pricePerUnit: 18.00 },
+  { id: 'Boldrin Prime', name: 'Boldrin Prime', pricePerUnit: 18.00 },
+  { id: 'Bill H. Prime', name: 'Bill H. Prime', pricePerUnit: 18.00 },
+  { id: 'Paulo Vicente Prime', name: 'Paulo Vicente Prime', pricePerUnit: 18.00 },
+  { id: 'Kamila Prime', name: 'Kamila Prime', pricePerUnit: 18.00 },
+  { id: 'Gustavo Alecio Prime', name: 'Gustavo Alecio Prime', pricePerUnit: 18.00 },
+  { id: 'Bruno Honorato Prime', name: 'Bruno Honorato Prime', pricePerUnit: 18.00 },
+  { id: 'Thaynara Godinho Prime', name: 'Thaynara Godinho Prime', pricePerUnit: 18.00 },
   { id: 'Puríssima', name: 'Puríssima', pricePerUnit: 22.00 },
-  { id: 'Roda Matriz N8', name: 'Roda Matriz N8', pricePerUnit: 18.00 },
+  { id: 'Soraia Roda Matriz N8', name: 'Roda Matriz N8', pricePerUnit: 18.00 },
+  { id: 'Renata Roda Matriz N8', name: 'Roda Matriz N8', pricePerUnit: 18.00 },
   { id: 'Roda Matriz N9', name: 'Roda Matriz N9', pricePerUnit: 19.00 },
   { id: 'SG Funilaria', name: 'SG Funilaria', pricePerUnit: 18.00 },
   { id: 'Soraia', name: 'Soraia (Particular Roda Motriz)', pricePerUnit: 18.00 },
@@ -28,4 +38,5 @@ export const COMPANIES: CompanyConfig[] = [
   { id: 'Videira Marmita', name: 'Videira Marmita', pricePerUnit: 18.00 },
   { id: 'Videira PF', name: 'Videira PF', pricePerUnit: 25.00 },
   { id: 'Zico Mecânico', name: 'Zico Mecânico', pricePerUnit: 20.00 },
+  { id: 'Nilmara (trabalha com o Zico)', name: 'Nilmara (trabalha com o Zico)', pricePerUnit: 20.00 },
 ];
