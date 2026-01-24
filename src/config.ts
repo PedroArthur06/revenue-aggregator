@@ -35,7 +35,7 @@ export const COMPANIES: CompanyConfig[] = [
   { id: 'Maria Neuza', name: 'Maria Neuza', pricePerUnit: 20.00 },
   { id: 'Melhor Aroma Marmita', name: 'Melhor Aroma Marmita', pricePerUnit: 18.00 },
   { id: 'Melhor Aroma PF', name: 'Melhor Aroma PF', pricePerUnit: 25.00 },
-  { id: 'Nicolly Escola Videira', name: 'Nicolly Escola Videira', pricePerUnit: 19.00 },
+  { id: 'Nicolly Escola Videira', name: 'Nicolly Escola Videira', pricePerUnit: 18.00 },
   { id: 'Nilmara (trabalha com o Zico)', name: 'Nilmara (trabalha com o Zico)', pricePerUnit: 20.00 },
   { id: 'Patricia (Particular)', name: 'Patrícia (Particular)', pricePerUnit: 20.00 },
   { id: 'Paulo Vicente Prime', name: 'Paulo Vicente Prime', pricePerUnit: 18.00 },
